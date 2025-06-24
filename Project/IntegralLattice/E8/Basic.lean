@@ -139,6 +139,90 @@ lemma inner_self_comp_sq (x : Fin 8 → ℤ) : (B x) x =
     simp [mul_inv_cancel]
     ring
 
+theorem AddInner (x y z : Fin 8 → ℤ) : (B (x + y)) z = (B x) z + (B y) z := by
+  rw [B]
+  simp
+
+theorem InnerSym (x y : Fin 8 → ℤ) : (B x) y = (B y) x := by
+  rw [B]
+  simp [Matrix.toBilin'_apply']
+  rw [CartanMatrix.E₈]
+  simp -- 力技で計算
+  ring
+
+theorem InnerSelf (x : Fin 8 → ℤ) : (B x) x ≥ 0 := by
+  simp [inner]
+  have (a : ℤ) : (0 : ℤ) ≤ a ↔ (0 : ℝ) ≤ (a : ℝ) := by simp -- (整数) ≤ (整数) ↔ (実数) ≤ (実数) の変換
+  rw [this, inner_self_comp_sq]
+  repeat'
+    apply add_nonneg
+  repeat'
+    apply sq_nonneg
+  apply mul_nonneg
+  · apply div_nonneg
+    <;> norm_num
+  · apply sq_nonneg
+
+theorem InnerEven (x : Fin 8 → ℤ) : Even ((B x) x) := by
+  rw [Even]
+  rw [inner_self_calc]
+  use (x 0) ^ 2 + (x 1) ^ 2 + (x 2) ^ 2 + (x 3) ^ 2 + (x 4) ^ 2 + (x 5) ^ 2 + (x 6) ^ 2 + (x 7) ^ 2
+    - ((x 0 * x 2) + (x 1 * x 3) + (x 2 * x 3) + (x 3 * x 4) + (x 4 * x 5) + (x 5 * x 6) + (x 6 * x 7))
+  ring
+
+theorem InnerSelfEqZero (x : Fin 8 → ℤ) : (B x) x = 0 → x = 0 := by
+  intro h
+  have coe (a : ℤ) : a = (0 : ℤ) ↔ (a : ℝ) = (0 : ℝ) := by simp -- (整数) = (整数) ↔ (実数) = (実数) の変換
+  rw [coe, inner_self_comp_sq] at h -- B x x を平方完成した形にする
+  -- f₀ + ... + f₇ = 0 ↔ f₀ = ... = f₇ = 0
+  rw [add_eq_zero_iff_of_nonneg] at h
+  rw [add_eq_zero_iff_of_nonneg] at h
+  rw [add_eq_zero_iff_of_nonneg] at h
+  rw [add_eq_zero_iff_of_nonneg] at h
+  rw [add_eq_zero_iff_of_nonneg] at h
+  rw [add_eq_zero_iff_of_nonneg] at h
+  rw [add_eq_zero_iff_of_nonneg] at h
+  rcases h with ⟨⟨⟨⟨⟨⟨⟨h0, h1⟩, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩
+  have H (a b : ℤ) (s t : ℝ) : (s * a - t * b) ^ 2 = 0 → s * a = t * b := by
+    intro h
+    rw [sq_eq_zero_iff, sub_eq_zero] at h
+    assumption
+  have H' (a : ℤ) (s : ℝ) (hs : s ≠ 0) : s * a ^ 2 = 0 → a = 0 := by
+    intro h
+    rw [mul_eq_zero] at h
+    rcases h with (h | h)
+    · contradiction
+    · rw [sq_eq_zero_iff, ← coe] at h
+      assumption
+  apply H at h0
+  apply H at h1
+  apply H at h2
+  apply H at h3
+  apply H at h4
+  apply H at h5
+  apply H at h6
+  apply H' at h7
+  simp [h7] at h6
+  simp [h6] at h5
+  simp [h5] at h4
+  simp [h4] at h3
+  simp [h3] at h2
+  simp [h3] at h1
+  simp [h2] at h0
+  ext i -- 各 i : Fin 8 について証明する
+  simp -- 0 i = 0
+  fin_cases i -- i = 0, ..., 7 でしらみつぶし
+  repeat'
+    simp
+  repeat'
+    assumption
+  repeat'
+    apply sq_nonneg
+  repeat'
+    apply add_nonneg
+  repeat'
+    apply sq_nonneg
+
 instance exampleE8 : E8Lattice (Fin 8 → ℤ) where
   inner := fun x y => B x y
   add := Pi.addCommGroup.add
@@ -160,91 +244,11 @@ instance exampleE8 : E8Lattice (Fin 8 → ℤ) where
   add_comm := Pi.addCommGroup.add_comm
   free := by exact Module.Free.function (Fin 8) ℤ ℤ
   finite := by exact Module.Finite.pi
-  add_inner := by
-    intros
-    rw [B]
-    simp
-  inner_sym := by
-    intros
-    rw [B]
-    simp [Matrix.toBilin'_apply']
-    rw [CartanMatrix.E₈]
-    simp -- 力技で計算
-    ring
-  inner_self := by
-    intro x
-    simp [inner]
-    have (a : ℤ) : (0 : ℤ) ≤ a ↔ (0 : ℝ) ≤ (a : ℝ) := by simp -- (整数) ≤ (整数) ↔ (実数) ≤ (実数) の変換
-    rw [this, inner_self_comp_sq]
-    repeat'
-      apply add_nonneg
-    repeat'
-      apply sq_nonneg
-    apply mul_nonneg
-    · apply div_nonneg
-      <;> norm_num
-    · apply sq_nonneg
-  inner_self_eq_zero := by
-    intro x h
-    have coe (a : ℤ) : a = (0 : ℤ) ↔ (a : ℝ) = (0 : ℝ) := by simp -- (整数) = (整数) ↔ (実数) = (実数) の変換
-    rw [coe, inner_self_comp_sq] at h -- B x x を平方完成した形にする
-    -- f₀ + ... + f₇ = 0 ↔ f₀ = ... = f₇ = 0
-    rw [add_eq_zero_iff_of_nonneg] at h
-    rw [add_eq_zero_iff_of_nonneg] at h
-    rw [add_eq_zero_iff_of_nonneg] at h
-    rw [add_eq_zero_iff_of_nonneg] at h
-    rw [add_eq_zero_iff_of_nonneg] at h
-    rw [add_eq_zero_iff_of_nonneg] at h
-    rw [add_eq_zero_iff_of_nonneg] at h
-    rcases h with ⟨⟨⟨⟨⟨⟨⟨h0, h1⟩, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩
-    have H (a b : ℤ) (s t : ℝ) : (s * a - t * b) ^ 2 = 0 → s * a = t * b := by
-      intro h
-      rw [sq_eq_zero_iff, sub_eq_zero] at h
-      assumption
-    have H' (a : ℤ) (s : ℝ) (hs : s ≠ 0) : s * a ^ 2 = 0 → a = 0 := by
-      intro h
-      rw [mul_eq_zero] at h
-      rcases h with (h | h)
-      · contradiction
-      · rw [sq_eq_zero_iff, ← coe] at h
-        assumption
-    apply H at h0
-    apply H at h1
-    apply H at h2
-    apply H at h3
-    apply H at h4
-    apply H at h5
-    apply H at h6
-    apply H' at h7
-    simp [h7] at h6
-    simp [h6] at h5
-    simp [h5] at h4
-    simp [h4] at h3
-    simp [h3] at h2
-    simp [h3] at h1
-    simp [h2] at h0
-    ext i -- 各 i : Fin 8 について証明する
-    simp -- 0 i = 0
-    fin_cases i -- i = 0, ..., 7 でしらみつぶし
-    repeat'
-      simp
-    repeat'
-      assumption
-    repeat'
-      apply sq_nonneg
-    repeat'
-      apply add_nonneg
-    repeat'
-      apply sq_nonneg
-  even := by
-    rw [IsEven]
-    intro x
-    rw [Even]
-    simp [inner]
-    rw [inner_self_calc]
-    use (x 0) ^ 2 + (x 1) ^ 2 + (x 2) ^ 2 + (x 3) ^ 2 + (x 4) ^ 2 + (x 5) ^ 2 + (x 6) ^ 2 + (x 7) ^ 2
-      - ((x 0 * x 2) + (x 1 * x 3) + (x 2 * x 3) + (x 3 * x 4) + (x 4 * x 5) + (x 5 * x 6) + (x 6 * x 7))
-    ring
+  add_inner := by apply AddInner
+  inner_sym := by apply InnerSym
+  inner_self := by apply InnerSelf
+  inner_self_eq_zero := by apply InnerSelfEqZero
+  even := by apply InnerEven
   unimodular := by
     rw [IsUnimodular, determinant]
     --determinant, Matrix.det_apply']
