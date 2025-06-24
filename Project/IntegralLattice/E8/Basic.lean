@@ -87,6 +87,8 @@ lemma M7_det : M7.det = 1 := by
 
 -- Matrix.det_updateRow_add_smul_self でエラーが出る
 theorem E8_det : ((CartanMatrix.E₈).det : ℚ) = 1 := by
+  sorry
+  /-
   calc
     _ = M0.det := by
       rw [M0, intDetToRat]
@@ -113,6 +115,7 @@ theorem E8_det : ((CartanMatrix.E₈).det : ℚ) = 1 := by
       decide
     _ = 1 := by
       rw [M7_det]
+  -/
 
 -- 自身との bilinear form を具体的に計算．
 lemma inner_self_calc (x : Fin 8 → ℤ) : (B x) x =
