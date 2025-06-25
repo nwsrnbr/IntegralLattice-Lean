@@ -15,6 +15,16 @@
   $E_8$格子とは，integralLatticeであって，even unimodularかつランクが$8$であるもののことである．
 \end{definition}
 
+\begin{definition}
+  \label{defi:reflection}
+  \lean{Submodule.reflection}
+  \leanok
+  次の直交変換を\textbf{reflection}という：
+  \begin{equation}
+    s_K : \map{E}{E};\ x \mapsto 2 \cdot \operatorname{proj}_K(x) - x.
+  \end{equation}
+\end{definition}
+
 \begin{theorem}
   \label{thm:unique}
   \lean{E8Lattice.unique}
